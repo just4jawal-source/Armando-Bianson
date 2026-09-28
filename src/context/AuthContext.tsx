@@ -21,9 +21,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   authorizedEmails: string[];
-  isDemoAdmin: boolean;
-  enableDemoAdmin: () => void;
-  disableDemoAdmin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,11 +28,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDemoAdmin, setIsDemoAdmin] = useState<boolean>(() => {
-    return localStorage.getItem('demo-admin-active') === 'true';
-  });
 
   useEffect(() => {
+    // Clear legacy demo token if it existed
+    try {
+      localStorage.removeItem('demo-admin-active');
+    } catch (e) {}
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -44,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  const isAdmin = isDemoAdmin || (!!user && isAuthorizedAdminEmail(user.email));
+  const isAdmin = !!user && isAuthorizedAdminEmail(user.email);
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -93,23 +92,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    setIsDemoAdmin(false);
-    localStorage.removeItem('demo-admin-active');
+    try {
+      localStorage.removeItem('demo-admin-active');
+    } catch (e) {}
     await signOut(auth);
   };
 
   const resetPassword = async (email: string) => {
     await sendPasswordResetEmail(auth, email);
-  };
-
-  const enableDemoAdmin = () => {
-    setIsDemoAdmin(true);
-    localStorage.setItem('demo-admin-active', 'true');
-  };
-
-  const disableDemoAdmin = () => {
-    setIsDemoAdmin(false);
-    localStorage.removeItem('demo-admin-active');
   };
 
   return (
@@ -123,10 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle,
         logout,
         resetPassword,
-        authorizedEmails: authorizedAdminEmails,
-        isDemoAdmin,
-        enableDemoAdmin,
-        disableDemoAdmin
+        authorizedEmails: authorizedAdminEmails
       }}
     >
       {children}

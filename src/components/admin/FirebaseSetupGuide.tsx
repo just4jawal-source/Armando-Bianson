@@ -112,17 +112,24 @@ service cloud.firestore {
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
                 4
               </span>
-              <span>Deploying to Production</span>
+              <span>Deploying to Vercel or Production</span>
             </div>
             <p className="text-neutral-600 dark:text-neutral-400 pl-7 text-xs leading-relaxed">
-              To deploy your site on Firebase Hosting or Vercel:
+              When deployed to Vercel, the build command is <code className="px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 font-mono text-[11px]">npm run build</code> and the output directory is <code className="px-1.5 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 font-mono text-[11px]">dist</code>.
             </p>
-            <div className="pl-7">
-              <code className="block p-2 rounded bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-300 font-mono text-xs">
-                npm run build<br />
-                firebase deploy --only hosting
-              </code>
+          </div>
+
+          {/* Step 5 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-neutral-900 dark:text-neutral-100">
+              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center font-bold">
+                5
+              </span>
+              <span>Authorize Your Vercel Domain in Firebase</span>
             </div>
+            <p className="text-neutral-600 dark:text-neutral-400 pl-7 text-xs leading-relaxed">
+              To prevent <code className="text-rose-500 font-mono">auth/unauthorized-domain</code> on Vercel: In Firebase Console, go to <strong>Authentication &gt; Settings &gt; Authorized domains</strong>, click <strong>Add domain</strong> and enter your Vercel URL (e.g. <code>*.vercel.app</code> or your custom domain).
+            </p>
           </div>
         </div>
 

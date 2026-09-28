@@ -20,6 +20,7 @@ import {
   Lock,
   ArrowRight,
   ShieldAlert,
+  Copy,
   Sparkles
 } from 'lucide-react';
 import { Project, ProfileData, StatItem } from '../../types';
@@ -63,8 +64,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     signup,
     loginWithGoogle,
     logout,
-    isDemoAdmin,
-    enableDemoAdmin,
     authorizedEmails
   } = useAuth();
 
@@ -148,21 +147,58 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           {authError && (
-            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs flex flex-col gap-2">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                <span className="font-semibold">Notice:</span>
+            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-950 dark:text-amber-100 text-xs space-y-2.5">
+              <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>
+                  {authError.includes('unauthorized-domain')
+                    ? 'Firebase Domain Authorization Required'
+                    : 'Authentication Error'}
+                </span>
               </div>
-              <p className="leading-relaxed pl-6">{authError}</p>
-              <div className="pl-6 pt-1 flex gap-2">
-                <button
-                  type="button"
-                  onClick={enableDemoAdmin}
-                  className="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-medium text-[11px] transition-colors cursor-pointer"
-                >
-                  Bypass with Instant Access &rarr;
-                </button>
-              </div>
+
+              {authError.includes('unauthorized-domain') ? (
+                <div className="space-y-2 text-neutral-700 dark:text-neutral-300 text-[11px] leading-relaxed">
+                  <p>
+                    Your current domain <strong className="font-mono text-neutral-900 dark:text-white px-1 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800">{typeof window !== 'undefined' ? window.location.hostname : 'domain'}</strong> is not yet whitelisted in Firebase Console.
+                  </p>
+                  <p className="font-semibold text-neutral-800 dark:text-neutral-200">
+                    To enable Google Sign-In for Vercel:
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1 pl-1 text-neutral-600 dark:text-neutral-400">
+                    <li>Open your Firebase Authentication Settings</li>
+                    <li>Go to the <strong>Authorized domains</strong> tab</li>
+                    <li>Click <strong>Add domain</strong> and enter: <code className="text-blue-600 dark:text-blue-400 font-mono font-bold">{typeof window !== 'undefined' ? window.location.hostname : 'your-vercel-domain'}</code></li>
+                  </ol>
+
+                  <div className="pt-1 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          navigator.clipboard.writeText(window.location.hostname);
+                          showToast(`Copied "${window.location.hostname}" to clipboard!`);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-[11px] font-medium transition-colors cursor-pointer"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>Copy Domain</span>
+                    </button>
+                    <a
+                      href="https://console.firebase.google.com/project/gen-lang-client-0959693300/authentication/settings"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium transition-colors"
+                    >
+                      <span>Open Firebase Console Settings</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <p className="leading-relaxed">{authError}</p>
+              )}
             </div>
           )}
 
@@ -277,22 +313,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
           </form>
 
-          {/* Quick Demo Preview Option */}
-          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 text-center space-y-2.5">
-            <p className="text-xs text-neutral-500">
-              Need immediate access to manage projects without logging in?
-            </p>
-            <button
-              type="button"
-              onClick={enableDemoAdmin}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer w-full justify-center"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Instant Dashboard Access (Bypass Login)</span>
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between text-xs text-neutral-500 pt-2">
+          <div className="flex items-center justify-between text-xs text-neutral-500 pt-2 border-t border-neutral-100 dark:border-neutral-800">
             <button
               type="button"
               onClick={() => {
@@ -435,14 +456,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <h1 className="text-xl font-bold tracking-tight text-neutral-950 dark:text-white">
                 Portfolio Admin Center
               </h1>
-              {isDemoAdmin && (
-                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/20">
-                  Preview Admin Mode
-                </span>
-              )}
             </div>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Authenticated as: <span className="font-mono text-neutral-800 dark:text-neutral-200">{user?.email || 'arman.bianson@yahoo.com (Demo)'}</span>
+              Authenticated as: <span className="font-mono text-neutral-800 dark:text-neutral-200">{user?.email}</span>
             </p>
           </div>
 

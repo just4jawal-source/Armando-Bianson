@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Armando Bianson Portfolio Firestore Blueprint",
+  "collections": {
+    "projects": {
+      "description": "Portfolio creative projects and video commercials showcase",
+      "fields": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "category": { "type": "string" },
+        "shortDescription": { "type": "string" },
+        "fullDescription": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "galleryImages": { "type": "array", "items": { "type": "string" } },
+        "videoUrl": { "type": "string" },
+        "clientOrBrand": { "type": "string" },
+        "toolsUsed": { "type": "array", "items": { "type": "string" } },
+        "externalLink": { "type": "string" },
+        "isPublished": { "type": "boolean" },
+        "order": { "type": "number" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "profile": {
+      "description": "Personal bio, contact, and site metadata",
+      "fields": {
+        "name": { "type": "string" },
+        "tagline": { "type": "string" },
+        "bio": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "email": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "socialLinks": {
+          "type": "object",
+          "properties": {
+            "twitter": { "type": "string" },
+            "linkedin": { "type": "string" },
+            "instagram": { "type": "string" },
+            "tiktok": { "type": "string" },
+            "youtube": { "type": "string" },
+            "github": { "type": "string" }
+          }
+        },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  }
+}

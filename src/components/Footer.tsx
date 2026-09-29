@@ -1,6 +1,7 @@
 import React from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface FooterProps {
   onNavigateToAdmin: () => void;
@@ -8,6 +9,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigateToAdmin }) => {
   const { isAdmin } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -24,6 +26,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToAdmin }) => {
 
         <div className="flex items-center gap-6">
           <p>© {currentYear} All rights reserved.</p>
+          
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+          </button>
+
           <button
             onClick={onNavigateToAdmin}
             className="flex items-center gap-1.5 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Configure manual class-based dark mode for Tailwind v4 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Configure manual class-based and attribute-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 @layer base {
   :root {

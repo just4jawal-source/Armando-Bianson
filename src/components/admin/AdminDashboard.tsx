@@ -21,10 +21,13 @@ import {
   ArrowRight,
   ShieldAlert,
   Copy,
-  Sparkles
+  Sparkles,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Project, ProfileData, StatItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ProjectEditorModal } from './ProjectEditorModal';
 import { FirebaseSetupGuide } from './FirebaseSetupGuide';
 import { uploadImage } from '../../lib/firestoreService';
@@ -64,14 +67,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     signup,
     loginWithGoogle,
     logout,
+    resetPassword,
     authorizedEmails
   } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   // Auth Form State - default to current user's email or primary admin
   const [emailInput, setEmailInput] = useState('just4jawal@gmail.com');
   const [passwordInput, setPasswordInput] = useState('');
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'reset'>('login');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -97,17 +103,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setNotification(null), 3000);
   };
 
-  // Handle Login / Signup
+  // Handle Login / Signup / Reset
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+    setAuthSuccess(null);
     setAuthLoading(true);
 
     try {
       if (authMode === 'login') {
         await login(emailInput, passwordInput);
-      } else {
+      } else if (authMode === 'signup') {
         await signup(emailInput, passwordInput);
+      } else if (authMode === 'reset') {
+        await resetPassword(emailInput);
+        setAuthSuccess(`Password reset email sent to ${emailInput}! Check your inbox and spam folder.`);
       }
     } catch (err: any) {
       setAuthError(err.message || 'Authentication failed. Please verify credentials.');
@@ -133,7 +143,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-16 bg-[#FAFAFA] dark:bg-[#0c0c0e]">
-        <div className="w-full max-w-md bg-white dark:bg-[#111215] rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800 p-8 space-y-6">
+        <div className="w-full max-w-md bg-white dark:bg-[#111215] rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800 p-8 space-y-6 relative">
+          {/* Top utilities on login screen */}
+          <div className="flex items-center justify-between pb-2 border-b border-neutral-100 dark:border-neutral-800/80">
+            <button
+              onClick={onViewPublicSite}
+              className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <span>&larr; Back to Portfolio</span>
+            </button>
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
+
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-2">
               <Lock className="w-6 h-6" />
@@ -242,6 +269,72 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
           </div>
 
+          {/* Auth Mode Tabs */}
+          <div className="flex rounded-xl bg-neutral-100 dark:bg-neutral-800/80 p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('login');
+                setAuthError(null);
+                setAuthSuccess(null);
+              }}
+              className={`flex-1 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                authMode === 'login'
+                  ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('reset');
+                setAuthError(null);
+                setAuthSuccess(null);
+              }}
+              className={`flex-1 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                authMode === 'reset'
+                  ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+            >
+              Reset / Forgot
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('signup');
+                setAuthError(null);
+                setAuthSuccess(null);
+              }}
+              className={`flex-1 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                authMode === 'signup'
+                  ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+
+          {authSuccess && (
+            <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs flex items-start gap-2.5">
+              <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold">Reset Link Sent!</p>
+                <p className="text-[11px] leading-relaxed text-emerald-800 dark:text-emerald-300">{authSuccess}</p>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('login')}
+                  className="mt-1 text-[11px] font-bold underline hover:no-underline cursor-pointer"
+                >
+                  Return to Sign In &rarr;
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Quick email selector buttons */}
           <div className="flex items-center gap-1.5 p-1 bg-neutral-100 dark:bg-neutral-800/60 rounded-lg text-[11px]">
             <button
@@ -283,19 +376,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
-              />
-            </div>
+            {authMode !== 'reset' ? (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    Password
+                  </label>
+                  {authMode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode('reset');
+                        setAuthError(null);
+                      }}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                      Forgot?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm"
+                />
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/80 text-blue-900 dark:text-blue-200 text-xs space-y-1">
+                <p className="font-semibold">Reset Your Admin Password</p>
+                <p className="text-[11px] text-blue-800 dark:text-blue-300 leading-relaxed">
+                  Enter your admin email above and click below. Firebase will send you a secure password reset link to create a new password immediately.
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -303,10 +419,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {authLoading ? (
-                <span>Authenticating...</span>
+                <span>Please wait...</span>
               ) : (
                 <>
-                  <span>{authMode === 'login' ? 'Sign In' : 'Create Admin Password'}</span>
+                  <span>
+                    {authMode === 'login'
+                      ? 'Sign In'
+                      : authMode === 'signup'
+                      ? 'Register Account'
+                      : 'Send Password Reset Link'}
+                  </span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
@@ -314,16 +436,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </form>
 
           <div className="flex items-center justify-between text-xs text-neutral-500 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-            <button
-              type="button"
-              onClick={() => {
-                setAuthError(null);
-                setAuthMode(authMode === 'login' ? 'signup' : 'login');
-              }}
-              className="hover:underline text-blue-600 cursor-pointer"
-            >
-              {authMode === 'login' ? 'Set new password / Register' : 'Already set password? Sign in'}
-            </button>
+            {authMode === 'reset' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthError(null);
+                  setAuthMode('login');
+                }}
+                className="hover:underline text-blue-600 cursor-pointer font-medium"
+              >
+                &larr; Back to Sign In
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthError(null);
+                  setAuthMode(authMode === 'login' ? 'reset' : 'login');
+                }}
+                className="hover:underline text-blue-600 cursor-pointer"
+              >
+                {authMode === 'login' ? 'Reset password via email' : 'Already have password? Sign in'}
+              </button>
+            )}
             <button
               type="button"
               onClick={onViewPublicSite}
@@ -463,6 +598,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-medium transition-colors cursor-pointer text-neutral-700 dark:text-neutral-300"
+            >
+              {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
+
             <button
               onClick={() => setShowGuide(true)}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-medium transition-colors cursor-pointer"

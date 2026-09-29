@@ -12,6 +12,8 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import {
   getProfile,
   getProjects,
+  subscribeToProfile,
+  subscribeToProjects,
   saveProject,
   deleteProject,
   reorderProjects,
@@ -54,13 +56,13 @@ function PortfolioApp() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [projects]);
 
-  // Initial Firestore Data Fetch
+  // Initial Firestore Data Fetch & Real-time Live Sync
   useEffect(() => {
     let isMounted = true;
 
-    async function loadData() {
+    // 1. Initial quick fetch (cache-first for speed)
+    async function loadInitial() {
       try {
-        setLoading(true);
         const [fetchedProfile, fetchedProjects] = await Promise.all([
           getProfile(),
           getProjects()
@@ -85,10 +87,25 @@ function PortfolioApp() {
       }
     }
 
-    loadData();
+    loadInitial();
+
+    // 2. Real-time Live Listeners for automatic live sync
+    const unsubProjects = subscribeToProjects((freshProjects) => {
+      if (isMounted && freshProjects.length > 0) {
+        setProjects(freshProjects);
+      }
+    });
+
+    const unsubProfile = subscribeToProfile((freshProfile) => {
+      if (isMounted && freshProfile) {
+        setProfile(freshProfile);
+      }
+    });
 
     return () => {
       isMounted = false;
+      unsubProjects();
+      unsubProfile();
     };
   }, []);
 

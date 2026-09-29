@@ -68,7 +68,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       if (err.code === 'auth/operation-not-allowed') {
         throw new Error(
-          'Email/Password sign-in is disabled in this Firebase project. Please click "Continue with Google Account" above, or use "Instant Dashboard Access".'
+          'Email/Password sign-in is not enabled in your Firebase Console. Please enable "Email/Password" in Firebase Console > Authentication > Sign-in method, or click "Continue with Google Account".'
+        );
+      }
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        throw new Error(
+          'Incorrect password or no password set for this email yet. If you need to set or reset your password, click the "Reset / Forgot" tab above!'
+        );
+      }
+      if (err.code === 'auth/wrong-password') {
+        throw new Error(
+          'Incorrect password. Click the "Reset / Forgot" tab above to receive a password reset link by email.'
         );
       }
       throw err;
@@ -84,7 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       if (err.code === 'auth/operation-not-allowed') {
         throw new Error(
-          'Email/Password sign-in is disabled in this Firebase project. Please click "Continue with Google Account" above, or use "Instant Dashboard Access".'
+          'Email/Password sign-in is not enabled in your Firebase Console. Please enable "Email/Password" in Firebase Console > Authentication > Sign-in method, or click "Continue with Google Account".'
+        );
+      }
+      if (err.code === 'auth/email-already-in-use') {
+        throw new Error(
+          'This email is already registered! Click "Already set password? Sign in" below to enter your password, or click "Reset password" if you forgot it.'
         );
       }
       throw err;
